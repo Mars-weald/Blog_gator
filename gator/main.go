@@ -7,7 +7,7 @@ import (
 	"github.com/Mars-weald/Blog-gator/gator/internal/config"
 )
 
-const configFile = ".gatorconfig.json"
+const configFile = "/home/mars_orleis/.gatorconfig.json"
 
 func main() {
 	gconf, err := config.Read(configFile)
