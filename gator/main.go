@@ -7,11 +7,12 @@ import (
 	"github.com/Mars-weald/Blog-gator/gator/internal/config"
 )
 
-const configFile = ".gatorconfig.json"
+const configFile = "/home/mars_orleis/.gatorconfig.json"
 
 func main() {
 	gconf, err := config.Read(configFile)
 	if err != nil {
+		fmt.Printf("ERROR in Read func: %s\n", err)
 		return
 	}
 
@@ -19,6 +20,7 @@ func main() {
 
 	data, err := os.ReadFile(configFile)
 	if err != nil {
+		fmt.Printf("ERROR reading file: %s\n", err)
 		return
 	}
 	fmt.Print(string(data))
