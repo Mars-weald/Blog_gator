@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 )
+
+const configFile = ".gatorconfig.json"
 
 type Config struct {
 	DbURL           string `json:"db_url"`
@@ -13,20 +16,15 @@ type Config struct {
 
 func (C *Config) SetUser(name string) error {
 	C.CurrentUserName = name
-
-	configData, err := json.Marshal(C)
-	if err != nil {
-		return fmt.Errorf("ERROR marshalling: %w", err)
-	}
-
-	err = os.WriteFile(".gatorconfig.json", configData, 0644)
-	if err != nil {
-		return fmt.Errorf("ERROR writing: %w", err)
-	}
-	return nil
+	return Write(*C)
 }
 
-func Read(path string) (Config, error) {
+func Read() (Config, error) {
+	path, err := getFilePath()
+	if err != nil {
+		return Config{}, fmt.Errorf("ERROR getting filepath: %w", err)
+	}
+
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return Config{}, fmt.Errorf("ERROR reading: %w", err)
@@ -37,4 +35,33 @@ func Read(path string) (Config, error) {
 		return Config{}, fmt.Errorf("ERROR unmarshalling: %w", err)
 	}
 	return structure, nil
+}
+
+func Write(cfg Config) error {
+	fullPath, err := getFilePath()
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Create(fullPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	err = encoder.Encode(cfg)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func getFilePath() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	fullPath := filepath.Join(homeDir, configFile)
+	return fullPath, nil
 }
