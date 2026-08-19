@@ -1,10 +1,13 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 
 	"github.com/Mars-weald/Blog-gator/gator/internal/config"
+	"github.com/Mars-weald/Blog-gator/gator/internal/database"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -20,16 +23,17 @@ func main() {
 	commander := commands{
 		array: map[string]func(s *state, cmd command) error{},
 	}
-
+	// register funcs needed
 	commander.register("login", handlerLogin)
-
+	commander.register("register", handlerRegister)
+	//get user arguments for use
 	argus := os.Args
 
 	if len(argus) < 2 {
 		fmt.Println("ERROR: too few arguments")
 		os.Exit(1)
 	}
-
+	// Break user input into name and arguments for use in funcs
 	comms := command{}
 	comms.name = argus[1]
 	comms.arguments = argus[2:]
@@ -39,4 +43,12 @@ func main() {
 		fmt.Println(erroar)
 		os.Exit(1)
 	}
+	// Open database
+	db, err := sql.Open("postgres", "postgres://postgres:nyanpirate@localhost:5432/gator")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	dbQueries := database.New(db)
+	mainState.db = dbQueries
 }
