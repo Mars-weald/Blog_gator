@@ -30,7 +30,13 @@ func handlerLogin(s *state, cmd command) error {
 		return fmt.Errorf("ERROR: No argument for login")
 	}
 
-	err := s.conf.SetUser(cmd.arguments[0])
+	_, err := s.db.GetUser(context.Background(), cmd.arguments[0])
+	if err != nil {
+		fmt.Println("ERROR: user not registered")
+		os.Exit(1)
+	}
+
+	err = s.conf.SetUser(cmd.arguments[0])
 	if err != nil {
 		return fmt.Errorf("ERROR logging in: set user err: %w", err)
 	}
@@ -50,21 +56,22 @@ func handlerRegister(s *state, cmd command) error {
 		Name:      cmd.arguments[0],
 	}
 	//Check if user exists in database
-	x, err := s.db.GetUser(context.Background(), cmd.arguments[0])
-	if err != nil {
-		fmt.Println("ERROR checking databse during registration")
-		os.Exit(1)
-	}
-	if x.Name == panams.Name {
+	_, err := s.db.GetUser(context.Background(), cmd.arguments[0])
+	if err == nil {
 		fmt.Println("ERROR: User already registered")
-		os.Exit(1)
 	}
 
 	_, err = s.db.CreateUser(context.Background(), panams)
 	if err != nil {
-		fmt.Println("ERROR creating user during registration")
-		os.Exit(1)
+		return fmt.Errorf("ERROR creating user during registry: %w", err)
 	}
+
+	err = s.conf.SetUser(cmd.arguments[0])
+	if err != nil {
+		return fmt.Errorf("ERROR registering: set user err: %w", err)
+	}
+	fmt.Println("User registered")
+	fmt.Println("User has been set")
 	return nil
 }
 

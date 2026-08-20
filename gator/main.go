@@ -16,7 +16,16 @@ func main() {
 		fmt.Printf("ERROR reading: %s\n", err)
 	}
 
+	// Open database
+	db, err := sql.Open("postgres", "postgres://postgres:nyanpirate@localhost:5432/gator")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	dbQueries := database.New(db)
+
 	mainState := state{
+		db:   dbQueries,
 		conf: &gconf,
 	}
 
@@ -43,12 +52,4 @@ func main() {
 		fmt.Println(erroar)
 		os.Exit(1)
 	}
-	// Open database
-	db, err := sql.Open("postgres", "postgres://postgres:nyanpirate@localhost:5432/gator")
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	dbQueries := database.New(db)
-	mainState.db = dbQueries
 }
