@@ -35,6 +35,9 @@ func main() {
 	// register funcs needed
 	commander.register("login", handlerLogin)
 	commander.register("register", handlerRegister)
+	commander.register("reset", handlerReset)
+	commander.register("users", handlerUsers)
+
 	//get user arguments for use
 	argus := os.Args
 

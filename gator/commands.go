@@ -75,6 +75,32 @@ func handlerRegister(s *state, cmd command) error {
 	return nil
 }
 
+func handlerReset(s *state, cmd command) error {
+	err := s.db.Reset(context.Background())
+	if err != nil {
+		fmt.Println("ERROR resetting")
+		os.Exit(1)
+	}
+	fmt.Println("Database successfully reset")
+	return nil
+}
+
+func handlerUsers(s *state, cmd command) error {
+	names, err := s.db.GetUsers(context.Background())
+	if err != nil {
+		fmt.Println("ERROR getting data from database")
+		os.Exit(1)
+	}
+	for i := 0; i < len(names); i++ {
+		if names[i] == s.conf.CurrentUserName {
+			fmt.Printf("* %s (current)\n", names[i])
+		} else {
+			fmt.Println(names[i])
+		}
+	}
+	return nil
+}
+
 func (c *commands) run(s *state, cmd command) error {
 	funcToRun, ok := c.array[cmd.name]
 	if !ok {
