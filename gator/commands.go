@@ -101,6 +101,15 @@ func handlerUsers(s *state, cmd command) error {
 	return nil
 }
 
+func handlerAggregate(s *state, cmd command) error {
+	reallySimpleFeed, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
+	if err != nil {
+		return fmt.Errorf("ERROR: %w", err)
+	}
+	fmt.Printf("%+v\n", reallySimpleFeed)
+	return nil
+}
+
 func (c *commands) run(s *state, cmd command) error {
 	funcToRun, ok := c.array[cmd.name]
 	if !ok {

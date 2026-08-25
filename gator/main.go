@@ -37,6 +37,7 @@ func main() {
 	commander.register("register", handlerRegister)
 	commander.register("reset", handlerReset)
 	commander.register("users", handlerUsers)
+	commander.register("agg", handlerAggregate)
 
 	//get user arguments for use
 	argus := os.Args
