@@ -38,6 +38,7 @@ func main() {
 	commander.register("reset", handlerReset)
 	commander.register("users", handlerUsers)
 	commander.register("agg", handlerAggregate)
+	commander.register("addfeed", handlerAddFeed)
 
 	//get user arguments for use
 	argus := os.Args

@@ -78,7 +78,7 @@ func handlerRegister(s *state, cmd command) error {
 func handlerReset(s *state, cmd command) error {
 	err := s.db.Reset(context.Background())
 	if err != nil {
-		fmt.Println("ERROR resetting")
+		fmt.Println("ERROR resetting: %w", err)
 		os.Exit(1)
 	}
 	fmt.Println("Database successfully reset")
@@ -107,6 +107,36 @@ func handlerAggregate(s *state, cmd command) error {
 		return fmt.Errorf("ERROR: %w", err)
 	}
 	fmt.Printf("%+v\n", reallySimpleFeed)
+	return nil
+}
+
+func handlerAddFeed(s *state, cmd command) error {
+	if len(cmd.arguments) == 0 {
+		return fmt.Errorf("ERROR: Need feed name and URL")
+	} else if len(cmd.arguments) == 1 {
+		return fmt.Errorf("ERROR: Need URL")
+	}
+
+	user := s.conf.CurrentUserName
+	x, err := s.db.GetUser(context.Background(), user)
+	if err != nil {
+		return fmt.Errorf("ERROR getting user: %w\n", err)
+	}
+
+	parms := database.CreateFeedParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		Name:      cmd.arguments[0],
+		Url:       cmd.arguments[1],
+		UserID:    x.ID,
+	}
+
+	food, err := s.db.CreateFeed(context.Background(), parms)
+	if err != nil {
+		return fmt.Errorf("ERROR creating feed: %w\n", err)
+	}
+	fmt.Printf("%+v\n", food)
 	return nil
 }
 

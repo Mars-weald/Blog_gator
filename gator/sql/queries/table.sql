@@ -1,2 +1,2 @@
 -- name: Reset :exec
-TRUNCATE users;
+DELETE FROM users;
