@@ -140,6 +140,18 @@ func handlerAddFeed(s *state, cmd command) error {
 	return nil
 }
 
+func handlerFeeds(s *state, cmd command) error {
+	feedArray, err := s.db.GetFeeds(context.Background())
+	if err != nil {
+		return fmt.Errorf("ERROR getting feeds: %w\n", err)
+	}
+	for _, feed := range feedArray {
+		fmt.Printf("%s (%s) created by %s\n", feed.Name, feed.Url, feed.Name_2)
+	}
+	return nil
+}
+
+// commands funcs
 func (c *commands) run(s *state, cmd command) error {
 	funcToRun, ok := c.array[cmd.name]
 	if !ok {
