@@ -136,6 +136,19 @@ func handlerAddFeed(s *state, cmd command) error {
 	if err != nil {
 		return fmt.Errorf("ERROR creating feed: %w\n", err)
 	}
+
+	params := database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    x.ID,
+		FeedID:    parms.ID,
+	}
+	_, err = s.db.CreateFeedFollow(context.Background(), params)
+	if err != nil {
+		return fmt.Errorf("ERROR creating feed-follow: %w\n", err)
+	}
+	fmt.Println("Follow-feed record created")
 	fmt.Printf("%+v\n", food)
 	return nil
 }
@@ -147,6 +160,47 @@ func handlerFeeds(s *state, cmd command) error {
 	}
 	for _, feed := range feedArray {
 		fmt.Printf("%s (%s) created by %s\n", feed.Name, feed.Url, feed.Name_2)
+	}
+	return nil
+}
+
+func handlerFollow(s *state, cmd command) error {
+	//Get user ID
+	person, err := s.db.GetUser(context.Background(), s.conf.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("ERROR getting user: %w\n", err)
+	}
+	//Get feed ID
+	food, err := s.db.UrlSearch(context.Background(), cmd.arguments[0])
+	if err != nil {
+		return fmt.Errorf("ERROR getting feed: %w\n", err)
+	}
+
+	panams := database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    person.ID,
+		FeedID:    food.ID,
+	}
+
+	record, err := s.db.CreateFeedFollow(context.Background(), panams)
+	if err != nil {
+		return fmt.Errorf("ERROR making feed-follow: %w\n", err)
+	}
+	for _, feed := range record {
+		fmt.Printf("%s (%s)\n", feed.UserName, feed.FeedNme)
+	}
+	return nil
+}
+
+func handlerFollowing(s *state, cmd command) error {
+	feedArray, err := s.db.GetFeedFollowsForUser(context.Background(), s.conf.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("ERROR getting feeds: %w\n", err)
+	}
+	for _, food := range feedArray {
+		fmt.Println(food.FeedName)
 	}
 	return nil
 }

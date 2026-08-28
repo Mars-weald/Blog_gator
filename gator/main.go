@@ -40,7 +40,8 @@ func main() {
 	commander.register("agg", handlerAggregate)
 	commander.register("addfeed", handlerAddFeed)
 	commander.register("feeds", handlerFeeds)
-
+	commander.register("follow", handlerFollow)
+	commander.register("following", handlerFollowing)
 	//get user arguments for use
 	argus := os.Args
 
