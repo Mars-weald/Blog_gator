@@ -38,10 +38,10 @@ func main() {
 	commander.register("reset", handlerReset)
 	commander.register("users", handlerUsers)
 	commander.register("agg", handlerAggregate)
-	commander.register("addfeed", handlerAddFeed)
+	commander.register("addfeed", middlewareLoggedIn(handlerAddFeed))
 	commander.register("feeds", handlerFeeds)
-	commander.register("follow", handlerFollow)
-	commander.register("following", handlerFollowing)
+	commander.register("follow", middlewareLoggedIn(handlerFollow))
+	commander.register("following", middlewareLoggedIn(handlerFollowing))
 	//get user arguments for use
 	argus := os.Args
 
