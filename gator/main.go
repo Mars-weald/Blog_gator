@@ -42,6 +42,8 @@ func main() {
 	commander.register("feeds", handlerFeeds)
 	commander.register("follow", middlewareLoggedIn(handlerFollow))
 	commander.register("following", middlewareLoggedIn(handlerFollowing))
+	commander.register("unfollow", middlewareLoggedIn(handlerUnfollow))
+
 	//get user arguments for use
 	argus := os.Args
 

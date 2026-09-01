@@ -194,6 +194,23 @@ func handlerFollowing(s *state, cmd command, user database.User) error {
 	return nil
 }
 
+func handlerUnfollow(s *state, cmd command, user database.User) error {
+	url := cmd.arguments[0]
+	feedDat, err := s.db.UrlSearch(context.Background(), url)
+	if err != nil {
+		return fmt.Errorf("ERROR getting feed: %w\n", err)
+	}
+	parms := database.UnfollowParams{
+		UserID: user.ID,
+		FeedID: feedDat.ID,
+	}
+	err = s.db.Unfollow(context.Background(), parms)
+	if err != nil {
+		return fmt.Errorf("ERROR unfollowing: %w\n", err)
+	}
+	return nil
+}
+
 // middleware
 func middlewareLoggedIn(handler func(s *state, cmd command, user database.User) error) func(*state, command) error {
 	return func(s *state, cmd command) error {
