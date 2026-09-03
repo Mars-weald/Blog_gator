@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"time"
@@ -102,12 +103,21 @@ func handlerUsers(s *state, cmd command) error {
 }
 
 func handlerAggregate(s *state, cmd command) error {
-	reallySimpleFeed, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
-	if err != nil {
-		return fmt.Errorf("ERROR: %w", err)
+	if len(cmd.arguments) == 0 {
+		return fmt.Errorf("ERROR: need time argument")
 	}
-	fmt.Printf("%+v\n", reallySimpleFeed)
-	return nil
+
+	time_between_reqs, err := time.ParseDuration(cmd.arguments[0])
+	if err != nil {
+		return fmt.Errorf("ERROR parsing duration: %w\n", err)
+	}
+
+	fmt.Printf("Aggregating feeds every %s...\n", cmd.arguments[0])
+
+	ticker := time.NewTicker(time_between_reqs)
+	for ; ; <-ticker.C {
+		feedScraper(s)
+	}
 }
 
 func handlerAddFeed(s *state, cmd command, user database.User) error {
@@ -207,6 +217,38 @@ func handlerUnfollow(s *state, cmd command, user database.User) error {
 	err = s.db.Unfollow(context.Background(), parms)
 	if err != nil {
 		return fmt.Errorf("ERROR unfollowing: %w\n", err)
+	}
+	return nil
+}
+
+func feedScraper(s *state) error {
+	nextFeed, err := s.db.GetNextFeedToFetch(context.Background())
+	if err != nil {
+		return fmt.Errorf("ERROR fetching feeds: %w\n", err)
+	}
+
+	thyme := sql.NullTime{
+		Time:  time.Now(),
+		Valid: true,
+	}
+	parms := database.MarkFeedFetchedParams{
+		LastFetchedAt: thyme,
+		ID:            nextFeed.ID,
+	}
+
+	err = s.db.MarkFeedFetched(context.Background(), parms)
+	if err != nil {
+		return fmt.Errorf("ERROR marking feed as fetched: %w\n", err)
+	}
+
+	russ, err := fetchFeed(context.Background(), nextFeed.Url)
+	if err != nil {
+		return fmt.Errorf("ERROR fetching feeds: %w\n", err)
+	}
+	fmt.Println(russ.Channel.Title)
+
+	for _, item := range russ.Channel.Item {
+		fmt.Printf("-- %s\n", item.Title)
 	}
 	return nil
 }
