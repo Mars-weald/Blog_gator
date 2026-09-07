@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/Mars-weald/Blog-gator/gator/internal/config"
@@ -245,10 +246,54 @@ func feedScraper(s *state) error {
 	if err != nil {
 		return fmt.Errorf("ERROR fetching feeds: %w\n", err)
 	}
-	fmt.Println(russ.Channel.Title)
-
+	// creating posts
 	for _, item := range russ.Channel.Item {
-		fmt.Printf("-- %s\n", item.Title)
+		pubTime := sql.NullTime{Valid: false}
+
+		pub, err := time.Parse(time.Layout, item.PubDate)
+		if err == nil {
+			pubTime.Time = pub
+			pubTime.Valid = true
+		}
+
+		params := database.CreatePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			Title:       sql.NullString{String: item.Title, Valid: true},
+			Url:         item.Link,
+			Description: sql.NullString{String: item.Description, Valid: true},
+			PublishedAt: pubTime.Time,
+			FeedID:      parms.ID,
+		}
+
+		s.db.CreatePost(context.Background(), params)
+	}
+	return nil
+}
+
+func handlerBrowse(s *state, cmd command, user database.User) error {
+	limit := 2
+	if len(cmd.arguments) > 0 {
+		i, err := strconv.Atoi(cmd.arguments[0])
+		if err != nil {
+			return fmt.Errorf("ERROR converting arg to int:  %w\n", err)
+		}
+		limit = i
+	}
+
+	pams := database.GetPostsForUserParams{
+		UserID: user.ID,
+		Limit:  int32(limit),
+	}
+
+	posts, err := s.db.GetPostsForUser(context.Background(), pams)
+	if err != nil {
+		return fmt.Errorf("ERROR getting posts: %w\n", err)
+	}
+
+	for _, thing := range posts {
+		fmt.Printf("%v\n", thing.Title.String)
 	}
 	return nil
 }
